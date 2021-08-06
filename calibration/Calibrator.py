@@ -13,6 +13,9 @@ class Predictor:
         self.out_dir = args.out_dir
         try:
             self.img = cv2.imread(self.image_path)
+
+            plt.imshow(self.img)
+            plt.show()
             corners, appr_edge = pickle.load(open(self.data, 'rb'))
             self.corners = corners
             self.appr_edge = appr_edge
@@ -50,7 +53,8 @@ class Predictor:
                 x_real = roundToPoint5((c[0] - self.origin[0])/self.appr_edge)*3
                 y_real = roundToPoint5((c[1] - self.origin[1])/self.appr_edge)*3
                 real_coor.append((x_real, y_real))
-                cv2.circle(img_cp, (int(c[0]), int(c[1])), 2, (255,0,0), -1)
+                cv2.circle(img_cp, (int(c[0]), int(c[1])), 3, (255,0,0), -1)
+            cv2.imwrite('./img.jpg', img_cp)
             real_lt, real_rt, real_lb, real_rb = real_coor
             top_frac = (x - lt[0])/(rt[0]-lt[0])
             bot_frac = (x - lb[0])/(rb[0]-lb[0])
@@ -84,14 +88,14 @@ class Trainer:
         self.image_path = args.image
         self.out_dir = args.out_dir
         try:
-            self.img = cv2.imread(self.image_path, 0)
+            self.img = cv2.imread(self.image_path)
         except: 
             raise Exception('image not found')
     def train(self):
-        dst = cv2.Canny(self.img, 50, 200, None, 3)
+        img_gray = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
+        dst = cv2.Canny(img_gray, 50, 200, None, 3)
         # Copy edges to the images that will display the results in BGR
-        cdst = cv2.cvtColor(dst, cv2.COLOR_GRAY2BGR)
-        cdstP = cdst.copy()
+        cdstP = cv2.cvtColor(dst, cv2.COLOR_GRAY2BGR)
 
         linesP = cv2.HoughLinesP(dst, 1, np.pi / 180, 50, None, 80, 50)    
         #print(linesP)
@@ -102,10 +106,10 @@ class Trainer:
                 l = i[0]
                 if isColumn(l): 
                     columns.append(l)
-                    #cv2.line(cdstP, (l[0], l[1]), (l[2], l[3]), (0,0,255), 1, cv2.LINE_AA)
+                    cv2.line(cdstP, (l[0], l[1]), (l[2], l[3]), (0,0,255), 1, cv2.LINE_AA)
                 else:
                     rows.append(l)
-                    #cv2.line(cdstP, (l[0], l[1]), (l[2], l[3]), (0,0,255), 1, cv2.LINE_AA)
+                    cv2.line(cdstP, (l[0], l[1]), (l[2], l[3]), (0,0,255), 1, cv2.LINE_AA)
         #print(len(rows))
         #print(len(columns))
         corners = []
@@ -142,8 +146,9 @@ class Trainer:
         saveData = (corners, appr_edge_length)
         pickle.dump(saveData, open('./calibration/calib.pkl', 'wb'))
         for i, (x, y) in enumerate(corners):
-            cv2.circle(self.img, (int(x),int(y)), 3, (0,0, 255), -1)
-            cv2.putText(self.img, str(i), (int(x),int(y)),cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2)
-        
+            cv2.circle(self.img, (int(x),int(y)), 5, (0,0, 255), -1)
+            #cv2.putText(self.img, str(i), (int(x),int(y)),cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2)
+        plt.imshow(self.img)
+        plt.show()
         cv2.imwrite(self.out_dir + self.image_path.split('/')[-1], self.img)
         return 0
