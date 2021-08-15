@@ -4,6 +4,9 @@ from .Functions import *
 import random
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+import os
+import time
 class Predictor:
     def __init__(self, args):
         self.image_path = args.image
@@ -152,3 +155,57 @@ class Trainer:
         plt.show()
         cv2.imwrite(self.out_dir + self.image_path.split('/')[-1], self.img)
         return 0
+
+
+class UndistortMethodTester:
+    def __init__(self, args):
+        self.image_path = args.image
+        self.out_dir = args.out_dir
+        self.dataset_path = args.distortedImagePath
+        try:
+            self.img = cv2.imread(self.image_path, 0)
+            corners_path = './calibration/corners.tsv'
+            corners = pd.read_csv(corners_path, sep = '\t', header=None).to_numpy().T.reshape(-1)
+            print(corners.shape)
+            corners = np.array([np.array([np.float32(pairs.split(', ')[0]), np.float32(pairs.split(', ')[1])]) for pairs in corners]).reshape(-1, 1, 2)
+            #print(corners.shape)
+            stime = time.time()
+            criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+            corners2 = cv2.cornerSubPix(self.img, corners, (11,11),  (-1, -1), criteria)
+            #print(corners2)
+            objp = np.zeros((10*18, 3), np.float32)
+            objp[:, :2] = np.mgrid[0:10, 0:18].T.reshape(-1,2)
+            #print(objp)
+            #cv2.drawChessboardCorners(self.img, (10, 18), corners2, True)
+            #cv2.imshow('img', self.img)
+            #cv2.waitKey()
+            etime = time.time()
+            print(etime - stime)
+            self.objectpoints = [objp]
+            self.imgpoints = [corners2]
+        except: 
+            raise Exception('image not found')
+    def undistort(self):
+        s1time = time.time()
+        ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(self.objectpoints, self.imgpoints, self.img.shape[::-1], None, None)
+        h, w = self.img.shape[:2]
+        newcameramtx, roi = cv2.getOptimalNewCameraMatrix(mtx, dist, (w,h), 1, (w,h))
+        #print(roi)
+        s2time = time.time()
+        print(s2time - s1time)
+        print('alo')
+        times = []
+        for i in os.listdir(self.dataset_path):
+            stime = time.time()
+            path = os.path.join(self.dataset_path, i)
+            img = cv2.imread(path)
+            dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
+            x, y, w, h = roi
+            dst = dst [y:y+h, x: x+ w]
+            etime = time.time()
+            times.append(stime - etime)
+            #plt.imshow(img)
+            #plt.show()
+            #cv2.imwrite(path, dst)
+        ftime = np.mean(times)
+        print(ftime)

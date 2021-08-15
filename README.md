@@ -6,4 +6,4 @@ train chessboard corners detector:
 python tools/train.py --image <image-path> --out_dir <output-dir>  
 
 predict:  
-python tools/predict.py --image <image-path> --out_dir <output-dir> --origin <origin coordinates>
+python tools/predict.py --image <<image-path>> --out_dir <<output-dir>> --origin <origin coordinates>

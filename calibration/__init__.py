@@ -1,1 +1,1 @@
-from .Calibrator import Predictor, Trainer
+from .Calibrator import Predictor, Trainer, UndistortMethodTester

@@ -13,47 +13,55 @@ def gkern(l=11, sig=1.):
 
     return kernel
 
-class Prototype1: 
-    def __init__(self, kernel_size = 11):
+class Prototype:
+    def __init__ (self, kernel_size = 11):
         assert kernel_size % 2 == 1
-        gkernel = gkern(l = kernel_size)
         zkernel = np.zeros((kernel_size, kernel_size))
-        kernelA = zkernel.copy()
-        kernelB = zkernel.copy()
-        kernelC = zkernel.copy()
-        kernelD = zkernel.copy()
-        sub_size = kernel_size // 2
-        #print(kernelA)
-        kernelA[:sub_size,sub_size+1:] = gkernel[:sub_size, sub_size+1:]
-        self.kernelA = kernelA/kernelA.sum()
-        kernelB[sub_size+1:, :sub_size] = gkernel[sub_size+1:, :sub_size]
-        self.kernelB = kernelB/kernelB.sum()
-        kernelC[:sub_size, : sub_size] = gkernel[:sub_size, :sub_size]
-        self.kernelC = kernelC/kernelC.sum()
-        kernelD[sub_size+1:, sub_size+1:] = gkernel[sub_size+1:, sub_size+1:]
-        self.kernelD = kernelD/kernelD.sum()
-
-class Prototype2:
+        self.kernel_size = kernel_size
+        self.sub_size = kernel_size // 2
+        self.kernelA = zkernel.copy()
+        self.kernelB = zkernel.copy()
+        self.kernelC = zkernel.copy()
+        self.kernelD = zkernel.copy()
+        
+    def _conv(self, img):
+        assert img.shape == (self.kernel_size, self.kernel_size)
+        outputA = np.multiply(img, self.kernelA).sum()
+        outputB = np.multiply(img, self.kernelB).sum()
+        outputC = np.multiply(img, self.kernelC).sum()
+        outputD = np.multiply(img, self.kernelD).sum()
+        return outputA, outputB, outputC, outputD
+    
+class Prototype1(Prototype): 
     def __init__(self, kernel_size = 11):
-        assert kernel_size %2 == 1
+        super().__init__(kernel_size=kernel_size)
+        #print(kernelA)
         gkernel = gkern(l = kernel_size)
-        zkernel = np.zeros((kernel_size, kernel_size))
-        kernelA = zkernel.copy()
-        kernelB = zkernel.copy()
-        kernelC = zkernel.copy()
-        kernelD = zkernel.copy()
+        self.kernelA[:self.sub_size,self.sub_size+1:] = gkernel[:self.sub_size, self.sub_size+1:]
+        self.kernelA = self.kernelA/self.kernelA.sum()
+        self.kernelB[self.sub_size+1:, :self.sub_size] = gkernel[self.sub_size+1:, :self.sub_size]
+        self.kernelB = self.kernelB/self.kernelB.sum()
+        self.kernelC[: self.sub_size, : self.sub_size] = gkernel[:self.sub_size, :self.sub_size]
+        self.kernelC = self.kernelC/self.kernelC.sum()
+        self.kernelD[self.sub_size+1:, self.sub_size+1:] = gkernel[self.sub_size+1:, self.sub_size+1:]
+        self.kernelD = self.kernelD/self.kernelD.sum()
+
+class Prototype2(Prototype):
+    def __init__(self, kernel_size = 11):
+        super().__init__(kernel_size=kernel_size)
+        gkernel = gkern(l = kernel_size)
         for u in range(kernel_size):
             for v in range(kernel_size):
                 if u < v and u+v < kernel_size -1:
-                    kernelA[u,v] = gkernel[u,v]
+                    self.kernelA[u,v] = gkernel[u,v]
                 elif u > v and u+v > kernel_size -1:
-                    kernelB[u,v] = gkernel[u,v]
+                    self.kernelB[u,v] = gkernel[u,v]
                 elif u < v and u+v > kernel_size -1: 
-                    kernelC[u,v] = gkernel[u,v]
+                    self.kernelC[u,v] = gkernel[u,v]
                 elif u> v and u+ v <kernel_size -1:
-                    kernelD[u,v] = gkernel[u,v]
-        self.kernelA = kernelA/kernelA.sum()
-        self.kernelB = kernelB/kernelB.sum()
-        self.kernelC = kernelC/kernelC.sum()
-        self.kernelD = kernelD/kernelC.sum()
+                    self.kernelD[u,v] = gkernel[u,v]
+        self.kernelA = self.kernelA/self.kernelA.sum()
+        self.kernelB = self.kernelB/self.kernelB.sum()
+        self.kernelC = self.kernelC/self.kernelC.sum()
+        self.kernelD = self.kernelD/self.kernelC.sum()
 
