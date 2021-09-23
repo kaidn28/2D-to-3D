@@ -94,68 +94,82 @@ class Trainer:
             self.img = cv2.imread(self.image_path)
         except: 
             raise Exception('image not found')
+    # def train(self):
+    #     img_gray = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
+    #     dst = cv2.Canny(img_gray, 50, 200, None, 3)
+    #     # Copy edges to the images that will display the results in BGR
+    #     cdstP = cv2.cvtColor(dst, cv2.COLOR_GRAY2BGR)
+
+    #     linesP = cv2.HoughLinesP(dst, 1, np.pi / 180, 50, None, 80, 50)    
+    #     #print(linesP)
+    #     columns = []
+    #     rows = []
+    #     if linesP is not None:
+    #         for i in linesP:
+    #             l = i[0]
+    #             if isColumn(l): 
+    #                 columns.append(l)
+    #                 cv2.line(cdstP, (l[0], l[1]), (l[2], l[3]), (0,0,255), 1, cv2.LINE_AA)
+    #             else:
+    #                 rows.append(l)
+    #                 cv2.line(cdstP, (l[0], l[1]), (l[2], l[3]), (0,0,255), 1, cv2.LINE_AA)
+    #     #print(len(rows))
+    #     #print(len(columns))
+    #     corners = []
+    #     for r in rows:
+    #         for c in columns:
+    #             b,c1 = colQuad(c)
+    #             a, c2 = rowQuad(r)
+    #             if (r[0] + b*r[1] + c1)*(r[2]+b*r[3] +c1) < 0 and (a*c[0] + c[1] + c2)*(a*c[2]+c[3] +c2) < 0:  
+    #                 x, y = cross((b,c1), (a,c2))
+    #                 checked = False 
+    #                 for i, p in enumerate(corners):
+    #                     if distance(p, (x,y))< 5:
+    #                         #print(distance(p, (x,y)))
+    #                         corners[i] = ((x+ p[0])/2, (y+p[1])/2)
+    #                         checked = True
+    #                         break
+    #                 if not checked:        
+    #                     corners.append((x,y))
+    #     random.seed()
+    #     mins = []
+    #     for i in range(3):
+    #         id = random.randrange(0, len(corners))
+    #         #print(id)
+    #         min = 9999
+    #         for j,c in enumerate(corners):
+    #             dis = distance(c, corners[id])
+    #             if dis < min and dis > 0:
+    #                 min = dis
+    #         mins.append(min)
+        
+    #     appr_edge_length =  np.mean(mins)
+    #     #print(appr_edge_length)
+        
+    #     saveData = (corners, appr_edge_length)
+    #     pickle.dump(saveData, open('./calibration/calib.pkl', 'wb'))
+    #     for i, (x, y) in enumerate(corners):
+    #         cv2.circle(self.img, (int(x),int(y)), 5, (0,0, 255), -1)
+    #         #cv2.putText(self.img, str(i), (int(x),int(y)),cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2)
+    #     plt.imshow(self.img)
+    #     plt.show()
+    #     cv2.imwrite(self.out_dir + self.image_path.split('/')[-1], self.img)
+    #     return 0
     def train(self):
-        img_gray = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
-        dst = cv2.Canny(img_gray, 50, 200, None, 3)
-        # Copy edges to the images that will display the results in BGR
-        cdstP = cv2.cvtColor(dst, cv2.COLOR_GRAY2BGR)
-
-        linesP = cv2.HoughLinesP(dst, 1, np.pi / 180, 50, None, 80, 50)    
-        #print(linesP)
-        columns = []
-        rows = []
-        if linesP is not None:
-            for i in linesP:
-                l = i[0]
-                if isColumn(l): 
-                    columns.append(l)
-                    cv2.line(cdstP, (l[0], l[1]), (l[2], l[3]), (0,0,255), 1, cv2.LINE_AA)
-                else:
-                    rows.append(l)
-                    cv2.line(cdstP, (l[0], l[1]), (l[2], l[3]), (0,0,255), 1, cv2.LINE_AA)
-        #print(len(rows))
-        #print(len(columns))
-        corners = []
-        for r in rows:
-            for c in columns:
-                b,c1 = colQuad(c)
-                a, c2 = rowQuad(r)
-                if (r[0] + b*r[1] + c1)*(r[2]+b*r[3] +c1) < 0 and (a*c[0] + c[1] + c2)*(a*c[2]+c[3] +c2) < 0:  
-                    x, y = cross((b,c1), (a,c2))
-                    checked = False 
-                    for i, p in enumerate(corners):
-                        if distance(p, (x,y))< 5:
-                            #print(distance(p, (x,y)))
-                            corners[i] = ((x+ p[0])/2, (y+p[1])/2)
-                            checked = True
-                            break
-                    if not checked:        
-                        corners.append((x,y))
-        random.seed()
-        mins = []
-        for i in range(3):
-            id = random.randrange(0, len(corners))
-            #print(id)
-            min = 9999
-            for j,c in enumerate(corners):
-                dis = distance(c, corners[id])
-                if dis < min and dis > 0:
-                    min = dis
-            mins.append(min)
+        # cv2.imshow('abc', self.img)
+        show_img_size = [int(x/4) for x in self.img.shape[:2][::-1]]
+        print(show_img_size)
         
-        appr_edge_length =  np.mean(mins)
-        #print(appr_edge_length)
+        gray = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
         
-        saveData = (corners, appr_edge_length)
-        pickle.dump(saveData, open('./calibration/calib.pkl', 'wb'))
-        for i, (x, y) in enumerate(corners):
-            cv2.circle(self.img, (int(x),int(y)), 5, (0,0, 255), -1)
-            #cv2.putText(self.img, str(i), (int(x),int(y)),cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2)
-        plt.imshow(self.img)
-        plt.show()
-        cv2.imwrite(self.out_dir + self.image_path.split('/')[-1], self.img)
-        return 0
-
+        _, corners = cv2.findChessboardCorners(gray, (11,9))
+        print(corners)
+        cv2.drawChessboardCorners(gray, (11,9), corners, True)
+        show_img = cv2.resize(gray, (show_img_size[0], show_img_size[1]))
+        
+        cv2.imshow('abc', show_img)
+        cv2.waitKey()
+        cv2.destroyAllWindows()
 
 class UndistortMethodTester:
     def __init__(self, args):
